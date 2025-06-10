@@ -1,0 +1,522 @@
+import React, { useState, useEffect } from 'react';
+import { Search, MapPin, DollarSign, Clock, Briefcase, User, Plus, Heart, Filter, Star, Send, Phone, Mail, Building, Calendar } from 'lucide-react';
+
+const JobPortalApp = () => {
+  const [currentView, setCurrentView] = useState('home');
+  const [userType, setUserType] = useState('jobseeker'); // 'jobseeker' or 'employer'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFilters, setSelectedFilters] = useState({
+    location: '',
+    salary: '',
+    type: '',
+    experience: ''
+  });
+  const [savedJobs, setSavedJobs] = useState([]);
+  const [appliedJobs, setAppliedJobs] = useState([]);
+  const [jobs, setJobs] = useState([
+    {
+      id: 1,
+      title: 'Frontend Developer',
+      company: 'TechCorp Solutions',
+      location: 'Mumbai, Maharashtra',
+      salary: '₹8-12 LPA',
+      type: 'Full-time',
+      experience: '2-4 years',
+      description: 'Looking for a skilled React developer to join our dynamic team.',
+      requirements: ['React.js', 'JavaScript', 'HTML/CSS', 'Git'],
+      posted: '2 days ago',
+      logo: '💻'
+    },
+    {
+      id: 2,
+      title: 'Digital Marketing Manager',
+      company: 'GrowthHub Agency',
+      location: 'Bangalore, Karnataka',
+      salary: '₹6-10 LPA',
+      type: 'Full-time',
+      experience: '3-5 years',
+      description: 'Lead our digital marketing initiatives and drive brand growth.',
+      requirements: ['SEO/SEM', 'Social Media', 'Analytics', 'Content Strategy'],
+      posted: '1 day ago',
+      logo: '📱'
+    },
+    {
+      id: 3,
+      title: 'Data Analyst',
+      company: 'DataTech Industries',
+      location: 'Pune, Maharashtra',
+      salary: '₹5-8 LPA',
+      type: 'Full-time',
+      experience: '1-3 years',
+      description: 'Analyze data trends and provide actionable business insights.',
+      requirements: ['Python/R', 'SQL', 'Excel', 'Tableau'],
+      posted: '3 days ago',
+      logo: '📊'
+    },
+    {
+      id: 4,
+      title: 'UI/UX Designer',
+      company: 'DesignStudio Pro',
+      location: 'Delhi, NCR',
+      salary: '₹7-11 LPA',
+      type: 'Full-time',
+      experience: '2-4 years',
+      description: 'Create intuitive and beautiful user experiences for our products.',
+      requirements: ['Figma', 'Adobe Suite', 'Prototyping', 'User Research'],
+      posted: '4 days ago',
+      logo: '🎨'
+    }
+  ]);
+
+  const [userProfile, setUserProfile] = useState({
+    name: 'Rahul Sharma',
+    email: 'rahul.sharma@email.com',
+    phone: '+91 98765 43210',
+    location: 'Mumbai, Maharashtra',
+    experience: '3 years',
+    skills: ['React.js', 'Node.js', 'JavaScript', 'MongoDB'],
+    avatar: '👨‍💻'
+  });
+
+  const filteredJobs = jobs.filter(job => {
+    const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         job.location.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesLocation = !selectedFilters.location || job.location.toLowerCase().includes(selectedFilters.location.toLowerCase());
+    const matchesType = !selectedFilters.type || job.type === selectedFilters.type;
+    
+    return matchesSearch && matchesLocation && matchesType;
+  });
+
+  const toggleSaveJob = (jobId) => {
+    setSavedJobs(prev => 
+      prev.includes(jobId) 
+        ? prev.filter(id => id !== jobId)
+        : [...prev, jobId]
+    );
+  };
+
+  const applyToJob = (jobId) => {
+    if (!appliedJobs.includes(jobId)) {
+      setAppliedJobs(prev => [...prev, jobId]);
+    }
+  };
+
+  const JobCard = ({ job }) => (
+    <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4 shadow-sm">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center space-x-3">
+          <div className="text-2xl">{job.logo}</div>
+          <div>
+            <h3 className="font-semibold text-gray-900">{job.title}</h3>
+            <p className="text-gray-600 text-sm">{job.company}</p>
+          </div>
+        </div>
+        <button
+          onClick={() => toggleSaveJob(job.id)}
+          className={`p-2 rounded-full ${savedJobs.includes(job.id) ? 'text-red-500' : 'text-gray-400'}`}
+        >
+          <Heart size={20} fill={savedJobs.includes(job.id) ? 'currentColor' : 'none'} />
+        </button>
+      </div>
+      
+      <div className="space-y-2 mb-4">
+        <div className="flex items-center text-sm text-gray-600">
+          <MapPin size={16} className="mr-2" />
+          {job.location}
+        </div>
+        <div className="flex items-center text-sm text-gray-600">
+          <DollarSign size={16} className="mr-2" />
+          {job.salary}
+        </div>
+        <div className="flex items-center text-sm text-gray-600">
+          <Clock size={16} className="mr-2" />
+          {job.type} • {job.experience}
+        </div>
+      </div>
+      
+      <p className="text-gray-700 text-sm mb-4">{job.description}</p>
+      
+      <div className="flex flex-wrap gap-2 mb-4">
+        {job.requirements.slice(0, 3).map((req, index) => (
+          <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+            {req}
+          </span>
+        ))}
+        {job.requirements.length > 3 && (
+          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+            +{job.requirements.length - 3} more
+          </span>
+        )}
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-gray-500">{job.posted}</span>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setCurrentView(`job-${job.id}`)}
+            className="px-4 py-2 border border-blue-500 text-blue-500 rounded-lg text-sm font-medium"
+          >
+            View Details
+          </button>
+          <button
+            onClick={() => applyToJob(job.id)}
+            disabled={appliedJobs.includes(job.id)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+              appliedJobs.includes(job.id)
+                ? 'bg-green-100 text-green-800 cursor-not-allowed'
+                : 'bg-blue-500 text-white hover:bg-blue-600'
+            }`}
+          >
+            {appliedJobs.includes(job.id) ? 'Applied ✓' : 'Apply Now'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const JobDetailsView = ({ jobId }) => {
+    const job = jobs.find(j => j.id === parseInt(jobId));
+    if (!job) return null;
+
+    return (
+      <div className="bg-white min-h-screen">
+        <div className="bg-blue-500 text-white p-4">
+          <button onClick={() => setCurrentView('home')} className="mb-4 text-white">
+            ← Back
+          </button>
+          <div className="flex items-center space-x-3">
+            <div className="text-3xl">{job.logo}</div>
+            <div>
+              <h1 className="text-xl font-bold">{job.title}</h1>
+              <p className="text-blue-100">{job.company}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="p-4 space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center text-sm text-gray-600">
+              <MapPin size={16} className="mr-2" />
+              {job.location}
+            </div>
+            <div className="flex items-center text-sm text-gray-600">
+              <DollarSign size={16} className="mr-2" />
+              {job.salary}
+            </div>
+            <div className="flex items-center text-sm text-gray-600">
+              <Briefcase size={16} className="mr-2" />
+              {job.type}
+            </div>
+            <div className="flex items-center text-sm text-gray-600">
+              <Clock size={16} className="mr-2" />
+              {job.experience}
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">Job Description</h3>
+            <p className="text-gray-700">{job.description}</p>
+          </div>
+          
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">Required Skills</h3>
+            <div className="flex flex-wrap gap-2">
+              {job.requirements.map((req, index) => (
+                <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                  {req}
+                </span>
+              ))}
+            </div>
+          </div>
+          
+          <div className="flex space-x-3 pt-4">
+            <button
+              onClick={() => toggleSaveJob(job.id)}
+              className={`flex-1 py-3 rounded-lg border font-medium ${
+                savedJobs.includes(job.id)
+                  ? 'border-red-500 text-red-500'
+                  : 'border-gray-300 text-gray-700'
+              }`}
+            >
+              <Heart size={20} className="inline mr-2" fill={savedJobs.includes(job.id) ? 'currentColor' : 'none'} />
+              {savedJobs.includes(job.id) ? 'Saved' : 'Save Job'}
+            </button>
+            <button
+              onClick={() => applyToJob(job.id)}
+              disabled={appliedJobs.includes(job.id)}
+              className={`flex-1 py-3 rounded-lg font-medium ${
+                appliedJobs.includes(job.id)
+                  ? 'bg-green-100 text-green-800 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
+            >
+              {appliedJobs.includes(job.id) ? 'Applied ✓' : 'Apply Now'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const ProfileView = () => (
+    <div className="bg-gray-50 min-h-screen">
+      <div className="bg-blue-500 text-white p-4">
+        <h1 className="text-xl font-bold">Profile</h1>
+      </div>
+      
+      <div className="p-4 space-y-4">
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="text-4xl">{userProfile.avatar}</div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">{userProfile.name}</h2>
+              <p className="text-gray-600">{userProfile.experience} Experience</p>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="flex items-center text-sm text-gray-600">
+              <Mail size={16} className="mr-3" />
+              {userProfile.email}
+            </div>
+            <div className="flex items-center text-sm text-gray-600">
+              <Phone size={16} className="mr-3" />
+              {userProfile.phone}
+            </div>
+            <div className="flex items-center text-sm text-gray-600">
+              <MapPin size={16} className="mr-3" />
+              {userProfile.location}
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <h3 className="font-semibold text-gray-900 mb-3">Skills</h3>
+          <div className="flex flex-wrap gap-2">
+            {userProfile.skills.map((skill, index) => (
+              <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <h3 className="font-semibold text-gray-900 mb-3">Application Status</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Applications Sent</span>
+              <span className="font-semibold text-blue-600">{appliedJobs.length}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Saved Jobs</span>
+              <span className="font-semibold text-green-600">{savedJobs.length}</span>
+            </div>
+          </div>
+        </div>
+        
+        <button className="w-full bg-blue-500 text-white py-3 rounded-lg font-medium">
+          Edit Profile
+        </button>
+      </div>
+    </div>
+  );
+
+  const SavedJobsView = () => {
+    const savedJobsList = jobs.filter(job => savedJobs.includes(job.id));
+    
+    return (
+      <div className="bg-gray-50 min-h-screen">
+        <div className="bg-blue-500 text-white p-4">
+          <h1 className="text-xl font-bold">Saved Jobs ({savedJobs.length})</h1>
+        </div>
+        
+        <div className="p-4">
+          {savedJobsList.length === 0 ? (
+            <div className="text-center py-12">
+              <Heart size={48} className="mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-600">No saved jobs yet</p>
+              <p className="text-gray-500 text-sm">Start saving jobs you're interested in!</p>
+            </div>
+          ) : (
+            savedJobsList.map(job => <JobCard key={job.id} job={job} />)
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const ApplicationsView = () => {
+    const appliedJobsList = jobs.filter(job => appliedJobs.includes(job.id));
+    
+    return (
+      <div className="bg-gray-50 min-h-screen">
+        <div className="bg-blue-500 text-white p-4">
+          <h1 className="text-xl font-bold">My Applications ({appliedJobs.length})</h1>
+        </div>
+        
+        <div className="p-4">
+          {appliedJobsList.length === 0 ? (
+            <div className="text-center py-12">
+              <Send size={48} className="mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-600">No applications yet</p>
+              <p className="text-gray-500 text-sm">Apply to jobs to see them here!</p>
+            </div>
+          ) : (
+            appliedJobsList.map(job => (
+              <div key={job.id} className="bg-white rounded-lg border border-gray-200 p-4 mb-4 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="text-2xl">{job.logo}</div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{job.title}</h3>
+                      <p className="text-gray-600 text-sm">{job.company}</p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                    Under Review
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-600 mb-2">
+                  <Calendar size={16} className="mr-2" />
+                  Applied {job.posted}
+                </div>
+                <button
+                  onClick={() => setCurrentView(`job-${job.id}`)}
+                  className="text-blue-500 text-sm font-medium"
+                >
+                  View Job Details →
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const HomeView = () => (
+    <div className="bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">JobPortal</h1>
+            <p className="text-gray-600">Find your dream job</p>
+          </div>
+          <div className="text-2xl">{userProfile.avatar}</div>
+        </div>
+        
+        {/* Search Bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search jobs, companies, locations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        
+        {/* Quick Filters */}
+        <div className="flex space-x-2 overflow-x-auto pb-2">
+          <select
+            value={selectedFilters.location}
+            onChange={(e) => setSelectedFilters(prev => ({ ...prev, location: e.target.value }))}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white min-w-0 flex-shrink-0"
+          >
+            <option value="">All Locations</option>
+            <option value="mumbai">Mumbai</option>
+            <option value="bangalore">Bangalore</option>
+            <option value="delhi">Delhi</option>
+            <option value="pune">Pune</option>
+          </select>
+          
+          <select
+            value={selectedFilters.type}
+            onChange={(e) => setSelectedFilters(prev => ({ ...prev, type: e.target.value }))}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white min-w-0 flex-shrink-0"
+          >
+            <option value="">All Types</option>
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Contract">Contract</option>
+            <option value="Internship">Internship</option>
+          </select>
+        </div>
+      </div>
+      
+      {/* Job Results */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {filteredJobs.length} Jobs Found
+          </h2>
+          <button className="flex items-center text-blue-500 text-sm">
+            <Filter size={16} className="mr-1" />
+            Filters
+          </button>
+        </div>
+        
+        {filteredJobs.length === 0 ? (
+          <div className="text-center py-12">
+            <Briefcase size={48} className="mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-600">No jobs found</p>
+            <p className="text-gray-500 text-sm">Try adjusting your search or filters</p>
+          </div>
+        ) : (
+          filteredJobs.map(job => <JobCard key={job.id} job={job} />)
+        )}
+      </div>
+    </div>
+  );
+
+  const renderCurrentView = () => {
+    if (currentView === 'home') return <HomeView />;
+    if (currentView === 'profile') return <ProfileView />;
+    if (currentView === 'saved') return <SavedJobsView />;
+    if (currentView === 'applications') return <ApplicationsView />;
+    if (currentView.startsWith('job-')) {
+      const jobId = currentView.split('-')[1];
+      return <JobDetailsView jobId={jobId} />;
+    }
+    return <HomeView />;
+  };
+
+  return (
+    <div className="max-w-md mx-auto bg-white min-h-screen relative">
+      {renderCurrentView()}
+      
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 max-w-md w-full bg-white border-t border-gray-200">
+        <div className="flex items-center justify-around py-2">
+          <button
+            onClick={() => setCurrentView('home')}
+            className={`flex flex-col items-center py-2 px-4 ${
+              currentView === 'home' ? 'text-blue-500' : 'text-gray-500'
+            }`}
+          >
+            <Search size={20} />
+            <span className="text-xs mt-1">Search</span>
+          </button>
+          
+          <button
+            onClick={() => setCurrentView('saved')}
+            className={`flex flex-col items-center py-2 px-4 ${
+              currentView === 'saved' ? 'text-blue-500' : 'text-gray-500'
+            }`}
+          >
+            <Heart size={20} />
+            <span className="text-xs mt-1">Saved</span>
+            {savedJobs.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {savedJobs.length}
+              </span>
+            )}
+          </button>
+          
+          <button
+         
